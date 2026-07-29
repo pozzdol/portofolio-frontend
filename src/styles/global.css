@@ -1,0 +1,199 @@
+/* Hallmark · genre: editorial · macrostructure: Feature Stack (existing shape, preserved at user request)
+ * theme: custom "warm ink & peach" · nav: N9 edge-aligned minimal · footer: Ft2 inline · enrichment: none
+ * paper oklch(98.4% 0.007 75) · accent oklch(54% 0.155 44) warm · Bricolage Grotesque + Geist + Geist Mono
+ * axes: light paper / geometric-sans display / warm accent
+ * pre-emit critique: P4 H4 E4 S5 R4 V4
+ */
+@import "tailwindcss";
+@import "./tokens.css";
+
+@layer base {
+  html {
+    overflow-x: clip;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-x: clip;
+    background-color: var(--color-paper);
+    color: var(--color-theme-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The main column is the printed page: a shade warmer than the margin, with a
+     faint dot grid at the size of a body line. Atmosphere, not decoration. */
+  main {
+    background-image: radial-gradient(
+      var(--color-theme-300) 1px,
+      transparent 1px
+    );
+    background-size: 26px 26px;
+    background-position: -1px -1px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  p {
+    max-width: 65ch;
+    text-wrap: pretty;
+  }
+
+  a {
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-theme-500);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: oklch(54% 0.155 44 / 0.18);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer components {
+  /* ---- avatar ----------------------------------------------------------- */
+  /* The favicon, at reading size. Concentric hairlines so the drawing's ink
+     line has something to answer to. */
+  .avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-theme-100);
+    box-shadow:
+      0 0 0 1px var(--color-theme-300),
+      0 0 0 5px var(--color-paper),
+      0 0 0 6px var(--color-theme-200);
+  }
+
+  /* ---- tab nav ---------------------------------------------------------- */
+  .main-nav a {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-slate-500);
+    border-bottom: 2px solid transparent;
+    transition:
+      color var(--dur-micro) var(--ease-out),
+      border-color var(--dur-micro) var(--ease-out);
+  }
+
+  .main-nav a:hover {
+    color: var(--color-theme-900);
+    border-bottom-color: var(--color-theme-300);
+  }
+
+  .main-nav a.active {
+    color: var(--color-theme-900);
+    border-bottom-color: var(--color-theme-500);
+  }
+
+  /* ---- spec labels (mono outlier · slot 1 of 2) ------------------------- */
+  .spec {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ---- colophon (mono outlier · slot 2 of 2) ---------------------------- */
+  .colophon {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- project screenshot ---------------------------------------------- */
+  .shot {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-theme-200);
+    transition: transform var(--dur-short) var(--ease-out);
+  }
+
+  .shot img {
+    display: block;
+    transition: transform var(--dur-long) var(--ease-out);
+  }
+
+  .shot:hover {
+    transform: translateY(-2px);
+  }
+
+  .shot:hover img {
+    transform: scale(1.02);
+  }
+}
+
+@layer utilities {
+  /* ---- one orchestrated entrance on load ------------------------------- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: reveal var(--dur-long) var(--ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+
+  /* ---- scroll reveal, project entries only ----------------------------- */
+  /* Scroll-driven CSS: no observer, no JS. Without support the content is
+     simply there, which is the correct fallback. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal-scroll {
+        animation: reveal var(--dur-long) var(--ease-out) both;
+        animation-timeline: view();
+        animation-range: entry 10% entry 55%;
+      }
+    }
+  }
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-reduced {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    transition-duration: 150ms !important;
+  }
+
+  .reveal {
+    animation: reveal-reduced 150ms linear forwards;
+    animation-delay: 0ms;
+  }
+
+  .shot:hover,
+  .shot:hover img {
+    transform: none;
+  }
+}

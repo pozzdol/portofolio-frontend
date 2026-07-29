@@ -1,17 +1,117 @@
 ---
-
+import { Icon } from "astro-icon/components";
+import Layout from "../layouts/Layout.astro";
+import Nav from "../components/Nav.astro";
+import Sidebar from "../components/Sidebar.astro";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Projects - Portfolio">
+  <div class="lg:grid lg:grid-cols-12">
+    <Sidebar />
+    <main
+      class="border-theme-200 bg-theme-100 col-span-8 col-start-5 lg:min-h-dvh lg:border-l"
+    >
+      <Nav />
+      <div
+        class="@container grid gap-y-5 py-10 lg:max-w-4xl @md:gap-y-10 @md:py-15 @lg:py-20"
+      >
+        <div class="@container reveal-scroll">
+          <div class="flex flex-col gap-7 px-8 md:px-10">
+            <div class="grid gap-2">
+              <a
+                class="hover:text-theme-600 flex items-center gap-2"
+                target="_blank"
+                href="https://waluh.web.id"
+              >
+                <h3 class="text-2xl/7 font-bold">Waluh Studio</h3>
+                <Icon name="tabler:external-link" class="mt-1 size-3" />
+              </a>
+              <div class="flex items-baseline justify-between gap-2">
+                <ul class="flex flex-wrap gap-x-4 gap-y-1.5">
+                  <li
+                    class="spec inline-flex items-center gap-1.5 text-slate-600"
+                  >
+                    <Icon
+                      name="tabler:brand-astro"
+                      class="text-theme-500 shrink-0 text-sm"
+                    /><span>Astro</span>
+                  </li><li
+                    class="spec inline-flex items-center gap-1.5 text-slate-600"
+                  >
+                    <Icon
+                      name="tabler:brand-typescript"
+                      class="text-theme-500 shrink-0 text-sm"
+                    /><span>Typescript</span>
+                  </li><li
+                    class="spec inline-flex items-center gap-1.5 text-slate-600"
+                  >
+                    <Icon
+                      name="tabler:brand-tailwind"
+                      class="text-theme-500 shrink-0 text-sm"
+                    /><span>Tailwind</span>
+                  </li><li
+                    class="spec inline-flex items-center gap-1.5 text-slate-600"
+                  >
+                    <Icon
+                      name="tabler:brand-cloudflare"
+                      class="text-theme-500 shrink-0 text-sm"
+                    /><span>Cloudflare</span>
+                  </li>
+                </ul>
+                <a
+                  href="https://waluh.web.id"
+                  title="live site"
+                  target="_blank"
+                  class="hover:text-theme-500 spec flex shrink-0 items-center gap-1 text-slate-600"
+                >
+                  <Icon name="tabler:world" />
+                  Live
+                </a>
+              </div>
+            </div>
+            <a
+              class="shot shadow-theme-200 shadow-md"
+              target="_blank"
+              href="https://waluh.web.id"
+            >
+              <img
+                src="/waluh.webp"
+                alt="Waluh Studio homepage"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="auto"
+                width="1444"
+                height="537"
+              />
+            </a>
+            <div class="text-slate-600">
+              <p>
+                The site for my own studio. Waluh Studio is a one-person indie
+                shop from Indonesia making warm, characterful pixel-art games -
+                art, code, and music all from the same hands. One page covering
+                the studio, how it works, and the three games in progress: Kedai
+                Senja, Tumbuh, and Pixel Diary. Built with Astro and Tailwind
+                CSS v4, set in Nunito, deployed on Cloudflare.
+              </p>
+            </div>
+          </div>
+        </div>
+        <hr class="border-theme-200 my-5 @xl:ml-10" />
+
+        <footer
+          class="colophon bg-theme-100 px-14 py-8 text-center text-slate-500 lg:text-left"
+        >
+          © <span class="dynamic-year">2026</span> Brandon Mathis. All rights reserved.
+        </footer>
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const yearElement = document.querySelector(".dynamic-year");
+            if (yearElement) {
+              yearElement.textContent = new Date().getFullYear().toString();
+            }
+          });
+        </script>
+      </div>
+    </main>
+  </div>
+</Layout>
