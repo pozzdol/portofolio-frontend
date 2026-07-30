@@ -3,30 +3,10 @@ import { Icon } from "astro-icon/components";
 import Layout from "../layouts/Layout.astro";
 import Nav from "../components/Nav.astro";
 import Sidebar from "../components/Sidebar.astro";
+import TechList from "../components/TechList.astro";
+import { getCertificates, year } from "../lib/portfolio";
 
-// One placeholder entry so the page shape is visible. Replace the object with
-// real certificates — copy it once per certificate. `credentialUrl: null` hides
-// the verify link.
-const certificates = [
-  {
-    title: "Example Certificate — replace this entry",
-    issuer: "Issuing Organisation",
-    issuerUrl: "https://example.com",
-    issued: "2026",
-    credentialId: "CERT-0000-0000",
-    credentialUrl: null,
-    // Scan or screenshot of the certificate, from /public. Leave null and the
-    // page shows an empty frame instead, so the slot stays visible.
-    image: null,
-    imageAlt: "",
-    note: "One or two lines on what the certificate actually covered — the syllabus, the project you had to ship, the exam. This box is where a recruiter looks to see whether the paper means anything.",
-    skills: [
-      { icon: "tabler:brand-typescript", label: "Typescript" },
-      { icon: "tabler:brand-nodejs", label: "Node.js" },
-      { icon: "tabler:cpu", label: "IoT" },
-    ],
-  },
-];
+const certificates = await getCertificates();
 ---
 
 <Layout title="Certificates - Portfolio">
@@ -54,9 +34,9 @@ const certificates = [
                       <h3 class="text-2xl/7 font-bold">{cert.title}</h3>
                       <div class="flex flex-row flex-wrap items-baseline gap-2">
                         <div class="text-base font-normal">
-                          {cert.issuerUrl ? (
+                          {cert.issuer_url ? (
                             <a
-                              href={cert.issuerUrl}
+                              href={cert.issuer_url}
                               target="_blank"
                               class="text-theme-900 hover:text-theme-500"
                             >
@@ -66,27 +46,33 @@ const certificates = [
                             cert.issuer
                           )}
                         </div>
-                        <div class="text-sm opacity-50">{cert.issued}</div>
+                        <div class="text-sm opacity-50">
+                          {year(cert.issued_on)}
+                          {cert.expires_on && ` - expires ${year(cert.expires_on)}`}
+                        </div>
                       </div>
                     </div>
                     <ul class="space-y-3">
-                      <li class="flex items-start space-x-3 text-base/tight text-slate-700">
-                        <Icon
-                          name="tabler:id"
-                          class="h-text w-text shrink-0 self-start text-violet-600"
-                        />
-                        <span>
-                          Credential ID <span class="colophon">{cert.credentialId}</span>
-                        </span>
-                      </li>
-                      {cert.credentialUrl && (
+                      {cert.credential_id && (
+                        <li class="flex items-start space-x-3 text-base/tight text-slate-700">
+                          <Icon
+                            name="tabler:id"
+                            class="h-text w-text shrink-0 self-start text-violet-600"
+                          />
+                          <span>
+                            Credential ID{" "}
+                            <span class="colophon">{cert.credential_id}</span>
+                          </span>
+                        </li>
+                      )}
+                      {cert.credential_url && (
                         <li class="flex items-start space-x-3 text-base/tight text-slate-700">
                           <Icon
                             name="tabler:circle-check"
                             class="h-text w-text shrink-0 self-start text-violet-600"
                           />
                           <a
-                            href={cert.credentialUrl}
+                            href={cert.credential_url}
                             target="_blank"
                             class="text-theme-500 hover:text-theme-600 underline decoration-theme-300 decoration-1 underline-offset-4"
                           >
@@ -95,35 +81,30 @@ const certificates = [
                         </li>
                       )}
                     </ul>
-                    <p class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md">
-                      {cert.note}
-                    </p>
-                    {cert.image ? (
+                    {cert.note && (
+                      <p class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md">
+                        {cert.note}
+                      </p>
+                    )}
+                    {cert.image && (
                       <a
                         class="shot shadow-theme-200 max-w-md shadow-md"
-                        href={cert.image}
+                        href={cert.image.src}
                         target="_blank"
                         title="open full size"
                       >
-                        <img src={cert.image} alt={cert.imageAlt} loading="lazy" decoding="async" />
+                        <img
+                          src={cert.image.src}
+                          alt={cert.image.alt}
+                          loading="lazy"
+                          decoding="async"
+                          width={cert.image.width ?? undefined}
+                          height={cert.image.height ?? undefined}
+                        />
                       </a>
-                    ) : (
-                      <div class="border-theme-300 text-slate-400 flex aspect-[1.414/1] max-w-md items-center justify-center rounded-md border border-dashed">
-                        <span class="spec">certificate image</span>
-                      </div>
                     )}
                   </div>
-                  <ul class="flex flex-wrap gap-3 gap-y-2 @xl:flex-col">
-                    {cert.skills.map((skill) => (
-                      <li class="spec inline-flex items-center gap-1.5 self-start text-slate-600">
-                        <Icon
-                          name={skill.icon}
-                          class="text-theme-500 shrink-0 text-sm"
-                        />
-                        <span>{skill.label}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <TechList tech={cert.tech} layout="column" />
                 </div>
               </div>
             </>
@@ -133,7 +114,7 @@ const certificates = [
       <footer
         class="colophon bg-theme-100 px-14 py-8 text-center text-slate-500 lg:text-left"
       >
-        © <span class="dynamic-year">2026</span> Brandon Mathis. All rights reserved.
+        © <span class="dynamic-year">2026</span> Fikri Achmad. All rights reserved.
       </footer>
       <script>
         document.addEventListener("DOMContentLoaded", () => {

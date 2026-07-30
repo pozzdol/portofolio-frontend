@@ -3,501 +3,84 @@ import { Icon } from "astro-icon/components";
 import Layout from "../layouts/Layout.astro";
 import Nav from "../components/Nav.astro";
 import Sidebar from "../components/Sidebar.astro";
+import TechList from "../components/TechList.astro";
+import { getExperiences, period } from "../lib/portfolio";
+
+const experiences = await getExperiences();
 ---
 
 <Layout title="Resumé - Portfolio">
   <div class="lg:grid lg:grid-cols-12">
     <Sidebar />
     <main
-      class="border-theme-200 bg-theme-100 col-span-8 col-start-5 lg:min-h-dvh lg:border-l-1"
+      class="border-theme-200 bg-theme-100 col-span-8 col-start-5 lg:min-h-dvh lg:border-l"
     >
       <Nav />
       <div
         class="@container grid max-w-4xl gap-y-5 py-10 @md:gap-y-10 @md:py-15 @lg:py-20"
       >
-        <div class="@container reveal-scroll">
-          <div
-            class="flex flex-col gap-7 px-8 @xl:grid @xl:grid-cols-[1fr_auto] @xl:gap-12 @xl:px-10 @xl:pl-17"
-          >
-            <div class="flex flex-col gap-7">
-              <div class="relative grid gap-1">
-                <Icon
-                  name="tabler:shield-star"
-                  class="text-theme-500 invisible absolute -left-10 h-8 w-8 @xl:visible"
-                />
-                <h3 class="text-2xl/7 font-bold">Lead Front-end Engineer</h3>
-                <div class="flex flex-row items-baseline gap-2">
-                  <div class="text-base font-normal">
-                    <a
-                      href="https://enveloop.com"
-                      target="_blank"
-                      class="text-theme-900 hover:text-theme-500"
-                    >
-                      Enveloop
-                    </a>
+        {
+          experiences.map((job, i) => (
+            <>
+              {i > 0 && <hr class="border-theme-200 my-5 lg:ml-17" />}
+              <div class="@container reveal-scroll">
+                <div class="flex flex-col gap-7 px-8 @xl:grid @xl:grid-cols-[1fr_auto] @xl:gap-12 @xl:px-10 @xl:pl-17">
+                  <div class="flex flex-col gap-7">
+                    <div class="relative grid gap-1">
+                      <Icon
+                        name="tabler:shield-star"
+                        class="text-theme-500 invisible absolute -left-10 h-8 w-8 @xl:visible"
+                      />
+                      <h3 class="text-2xl/7 font-bold">{job.role}</h3>
+                      <div class="flex flex-row flex-wrap items-baseline gap-2">
+                        <div class="text-base font-normal">
+                          {job.company_url ? (
+                            <a
+                              href={job.company_url}
+                              target="_blank"
+                              class="text-theme-900 hover:text-theme-500"
+                            >
+                              {job.company}
+                            </a>
+                          ) : (
+                            job.company
+                          )}
+                        </div>
+                        <div class="text-sm opacity-50">
+                          {period(job.started_on, job.ended_on)}
+                        </div>
+                      </div>
+                    </div>
+                    {job.highlights.length > 0 && (
+                      <ul class="space-y-3">
+                        {job.highlights.map((point) => (
+                          <li class="flex items-start space-x-3 text-base/tight text-slate-700">
+                            <Icon
+                              name="tabler:circle-check"
+                              class="h-text w-text shrink-0 self-start text-violet-600"
+                            />
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {job.blurb && (
+                      <p class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md">
+                        {job.blurb}
+                      </p>
+                    )}
                   </div>
-                  <div class="text-sm opacity-50">2020 - 2025</div>
+                  <TechList tech={job.tech} layout="column" />
                 </div>
               </div>
-              <ul class="space-y-3">
-                <li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Led the development of a highly interactive React/GraphQL
-                    application</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Built a design system of tested components and hooks to
-                    help us build confidently and ship faster</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Coordinated with design and backend to ship user-friendly
-                    features based on customer feedback</span
-                  >
-                </li>
-              </ul>
-              <p
-                class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md"
-              >
-                Enveloop is an API email service with live engagement monitoring
-                and a no-code design tool for creating beautiful,
-                component-driven email templates.
-              </p>
-            </div>
-            <ul class="flex flex-wrap gap-3 gap-y-2 @xl:flex-col">
-              <li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-react"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>React</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:route"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>React Router</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-graphql"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>GraphQL</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-typescript"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Typescript</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-javascript"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Javascript</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-sass"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Sass</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:package"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Webpack</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-vite"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Vite</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-storybook"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Storybook</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-git"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Git</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <span>Zustand</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <hr class="border-theme-200 my-5 lg:ml-17" />
-        <div class="@container reveal-scroll">
-          <div
-            class="flex flex-col gap-7 px-8 @xl:grid @xl:grid-cols-[1fr_auto] @xl:gap-12 @xl:px-10 @xl:pl-17"
-          >
-            <div class="flex flex-col gap-7">
-              <div class="relative grid gap-1">
-                <Icon
-                  name="tabler:shield-star"
-                  class="text-theme-500 invisible absolute -left-10 h-8 w-8 @xl:visible"
-                />
-                <h3 class="text-2xl/7 font-bold">
-                  Senior Front-end Engineer / Design Systems
-                </h3>
-                <div class="flex flex-row items-baseline gap-2">
-                  <div class="text-base font-normal">
-                    <a
-                      href="https://fleetio.com"
-                      target="_blank"
-                      class="text-theme-900 hover:text-theme-500"
-                    >
-                      Fleetio
-                    </a>
-                  </div>
-                  <div class="text-sm opacity-50">2018 - 2020</div>
-                </div>
-              </div>
-              <ul class="space-y-3">
-                <li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Led the development of a component-driven design system</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Collaborated with design and backend teams to simplify key
-                    user funnels</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Provided guidance to designers on best practices for
-                    development</span
-                  >
-                </li>
-              </ul>
-              <p
-                class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md"
-              >
-                Fleetio is a worldwide fleet management system for helping
-                businesses of all sizes manage maintenance, inventory, cost
-                tracking and more.
-              </p>
-            </div>
-            <ul class="flex flex-wrap gap-3 gap-y-2 @xl:flex-col">
-              <li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-javascript"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Javascript</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-sass"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Sass</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-html5"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>HTML</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:diamond"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Ruby on Rails</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-git"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Git</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-figma"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Figma</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <hr class="border-theme-200 my-5 lg:ml-17" />
-        <div class="@container reveal-scroll">
-          <div
-            class="flex flex-col gap-7 px-8 @xl:grid @xl:grid-cols-[1fr_auto] @xl:gap-12 @xl:px-10 @xl:pl-17"
-          >
-            <div class="flex flex-col gap-7">
-              <div class="relative grid gap-1">
-                <Icon
-                  name="tabler:shield-star"
-                  class="text-theme-500 invisible absolute -left-10 h-8 w-8 @xl:visible"
-                />
-                <h3 class="text-2xl/7 font-bold">
-                  Lead Front-end Engineer &amp; Product Designer
-                </h3>
-                <div class="flex flex-row items-baseline gap-2">
-                  <div class="text-base font-normal">
-                    <a
-                      href="https://www.ibm.com/cloud"
-                      target="_blank"
-                      class="text-theme-900 hover:text-theme-500"
-                    >
-                      Compose (acquired by IBM)
-                    </a>
-                  </div>
-                  <div class="text-sm opacity-50">2011 - 2018</div>
-                </div>
-              </div>
-              <ul class="space-y-3">
-                <li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Designed and developed a user-friendly front-end
-                    application for database management</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Built a comprehensive component-driven design system</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Mentored and led a team of front-end developers and
-                    designers</span
-                  >
-                </li>
-              </ul>
-              <p
-                class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md"
-              >
-                Compose was a Database-as-a-service startup with a beautiful and
-                intuitive web console for deploying, monitoring, and scaling a
-                wide variety of databses. Compose was acquired in 2016 and now
-                part of IBM Cloud.
-              </p>
-            </div>
-            <ul class="flex flex-wrap gap-3 gap-y-2 @xl:flex-col">
-              <li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-javascript"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Javascript</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-sass"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Sass</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-html5"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>HTML</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:diamond"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Ruby on Rails</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-git"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Git</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-adobe-illustrator"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Illustrator</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <hr class="border-theme-200 my-5 lg:ml-17" />
-        <div class="@container reveal-scroll">
-          <div
-            class="flex flex-col gap-7 px-8 @xl:grid @xl:grid-cols-[1fr_auto] @xl:gap-12 @xl:px-10 @xl:pl-17"
-          >
-            <div class="flex flex-col gap-7">
-              <div class="relative grid gap-1">
-                <Icon
-                  name="tabler:shield-star"
-                  class="text-theme-500 invisible absolute -left-10 h-8 w-8 @xl:visible"
-                />
-                <h3 class="text-2xl/7 font-bold">Senior Product Designer</h3>
-                <div class="flex flex-row items-baseline gap-2">
-                  <div class="text-base font-normal">Cofamilies</div>
-                  <div class="text-sm opacity-50">2009 - 2011</div>
-                </div>
-              </div>
-              <ul class="space-y-3">
-                <li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Led product design from UX and wireframes to front-end
-                    development</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span
-                    >Created prototypes to assist with customer research</span
-                  >
-                </li><li
-                  class="flex items-start space-x-3 text-base/tight text-slate-700"
-                >
-                  <Icon
-                    name="tabler:circle-check"
-                    class="h-text w-text shrink-0 self-start text-violet-600"
-                  />
-                  <span>Collaborated on design collateral</span>
-                </li>
-              </ul>
-              <p
-                class="border-theme-200 bg-theme-50 shadow-theme-200 rounded-md border-l-0 px-5 py-3 text-sm text-slate-600 italic shadow-md"
-              >
-                Cofamilies was a shared calendaring app designed to simplify
-                custody and communication for divorced and blended families.
-              </p>
-            </div>
-            <ul class="flex flex-wrap gap-3 gap-y-2 @xl:flex-col">
-              <li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-javascript"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Javascript</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-sass"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Sass</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-html5"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>HTML</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-git"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Git</span>
-              </li><li
-                class="spec inline-flex items-center gap-1.5 self-start text-slate-600"
-              >
-                <Icon
-                  name="tabler:brand-adobe-illustrator"
-                  class="text-theme-500 shrink-0 text-sm"
-                /><span>Illustrator</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+            </>
+          ))
+        }
       </div>
       <footer
         class="colophon bg-theme-100 px-14 py-8 text-center text-slate-500 lg:text-left"
       >
-        © <span class="dynamic-year">2026</span> Brandon Mathis. All rights reserved.
+        © <span class="dynamic-year">2026</span> Fikri Achmad. All rights reserved.
       </footer>
       <script>
         document.addEventListener("DOMContentLoaded", () => {
