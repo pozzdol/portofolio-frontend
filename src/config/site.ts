@@ -77,7 +77,7 @@ export const site = {
    * infrastructure because owning both the application and the deployment is
    * the actual differentiator.
    */
-  bio: "I build internal web applications end to end — Laravel with Inertia and React on PostgreSQL — and I own the deployment path: Ubuntu, Nginx, Docker, Cloudflare, and CI/CD. I use Python and Flask when a service is better kept separate, and IoT when the work touches hardware. Outside of work, I regularly build personal projects to sharpen my skills and experiment with new technologies.",
+  bio: "I build internal web applications end to end, Laravel with Inertia and React on PostgreSQL. I own the deployment path: Ubuntu, Nginx, Docker, Cloudflare, and CI/CD. I use Python and Flask when a service is better kept separate, and IoT when the work touches hardware. Outside of work, I regularly build personal projects to sharpen my skills and experiment with new technologies.",
 
   /**
    * schema.org `knowsAbout`. Every entry here is something in the shipped work,
