@@ -19,7 +19,7 @@ export async function getSections(): Promise<
 
   return [
     { href: "/", label: "Projects" },
-    { href: "/resume", label: "Résumé" },
+    { href: "/resume", label: "Resumé" },
     ...(hasCertificates
       ? [{ href: "/certificates", label: "Certificates" }]
       : []),
