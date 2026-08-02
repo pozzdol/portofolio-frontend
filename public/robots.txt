@@ -1,0 +1,36 @@
+User-agent: *
+Allow: /
+
+# Being retrieved and cited is the entire point of a portfolio, so AI crawlers
+# are welcomed explicitly rather than left to a default. Note that robots.txt
+# cannot override an edge rule: if Cloudflare's "Block AI Scrapers and Crawlers"
+# toggle is on for this zone, these agents are rejected before the origin is
+# ever consulted. Check Security -> Bots.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+Sitemap: https://fikriachmad.dev/sitemap-index.xml

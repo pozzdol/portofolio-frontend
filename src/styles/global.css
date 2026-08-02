@@ -6,6 +6,7 @@
  */
 @import "tailwindcss";
 @import "./tokens.css";
+@import "./print.css";
 
 @layer base {
   html {
@@ -69,6 +70,75 @@
 }
 
 @layer components {
+  /* ---- skip link -------------------------------------------------------- */
+  /* WCAG 2.2 SC 2.4.1. Nine focusable elements precede page content on every
+     route, and the sidebar is identical across all of them. */
+  .skip-link {
+    position: absolute;
+    top: -4rem;
+    left: 0.5rem;
+    z-index: 50;
+    border-radius: var(--radius-md);
+    background-color: var(--color-theme-900);
+    padding: 0.625rem 1rem;
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    transition: top var(--dur-micro) var(--ease-out);
+  }
+
+  .skip-link:focus-visible {
+    top: 0.5rem;
+  }
+
+  /* ---- buttons ---------------------------------------------------------- */
+  /* The site had no button at all: the primary business action was body-weight
+     underlined text. One primary per page, no exceptions. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1.25rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: 1.2;
+    transition:
+      background-color var(--dur-micro) var(--ease-out),
+      border-color var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out);
+  }
+
+  .btn-primary {
+    background-color: var(--color-theme-500);
+    color: var(--color-paper);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-theme-600);
+  }
+
+  .btn-secondary {
+    border: 1px solid var(--color-theme-300);
+    color: var(--color-theme-900);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--color-theme-500);
+    color: var(--color-theme-500);
+  }
+
+  /* ---- technology chips ------------------------------------------------- */
+  /* These are the only place the stack is named, so they must read as text.
+     `.spec` (12px uppercase mono) is right for a label and wrong for content —
+     it scans as decoration and gets skipped by human and indexer alike. */
+  .chip {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--color-slate-600);
+  }
+
   /* ---- avatar ----------------------------------------------------------- */
   /* The favicon, at reading size. Concentric hairlines so the drawing's ink
      line has something to answer to. */
@@ -143,6 +213,19 @@
 }
 
 @layer utilities {
+  /* ---- visually hidden, still announced -------------------------------- */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
   /* ---- one orchestrated entrance on load ------------------------------- */
   .reveal {
     opacity: 0;

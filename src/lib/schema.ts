@@ -74,9 +74,22 @@ export type Project = z.infer<typeof Project> & { image: Image | null };
 export type Experience = z.infer<typeof Experience>;
 export type Certificate = z.infer<typeof Certificate> & { image: Image | null };
 
-/** "2020 - 2025" · "2024 - Present" */
+/**
+ * "2020 - 2025" · "2024 - Present" · "Mar - May 2025"
+ *
+ * Years alone are right for multi-year roles and wrong for short ones: a
+ * three-month internship rendered "2025 - 2025", which reads like a formatting
+ * bug and hides that it was three months. Same-year ranges get months.
+ */
 export function period(from: Date, to: Date | null): string {
-  return `${from.getUTCFullYear()} - ${to ? to.getUTCFullYear() : "Present"}`;
+  if (!to) return `${from.getUTCFullYear()} - Present`;
+
+  const month = (d: Date) =>
+    d.toLocaleString("en-GB", { month: "short", timeZone: "UTC" });
+
+  return from.getUTCFullYear() === to.getUTCFullYear()
+    ? `${month(from)} - ${month(to)} ${to.getUTCFullYear()}`
+    : `${from.getUTCFullYear()} - ${to.getUTCFullYear()}`;
 }
 
 export function year(date: Date): string {

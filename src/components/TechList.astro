@@ -19,9 +19,14 @@ const listClass =
 <ul class={listClass}>
   {
     tech.map((item) => (
-      <li class="spec inline-flex items-center gap-1.5 self-start text-slate-600">
+      <li class="chip inline-flex items-center gap-1.5 self-start">
         {item.icon && (
-          <Icon name={item.icon} class="text-theme-500 shrink-0 text-sm" />
+          <Icon
+            name={item.icon}
+            class="text-theme-500 shrink-0 text-sm"
+            aria-hidden="true"
+            focusable="false"
+          />
         )}
         <span>{item.label}</span>
       </li>

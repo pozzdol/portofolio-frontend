@@ -1,0 +1,61 @@
+/* Ctrl+P on /resume has to produce something a recruiter can attach to a
+ * requisition. This is not a substitute for a real PDF — ATS pipelines parse
+ * files, not URLs — but it makes the page printable today, at ~30 lines.
+ */
+
+@media print {
+  /* The sidebar is `position: fixed` on desktop; printed, that pins it to every
+     page and overlaps the content. */
+  header[class*="lg:fixed"] {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  /* Entrance animations leave elements at opacity 0 if print fires early. */
+  .reveal,
+  .reveal-scroll {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Navigation, buttons and the skip link are all screen affordances. */
+  nav,
+  .btn,
+  .skip-link,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    background: none !important;
+    border: 0 !important;
+    min-height: 0 !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  /* A printed link is worthless without its destination. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    word-break: break-all;
+  }
+
+  h1,
+  h2,
+  h3,
+  li,
+  .reveal-scroll {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 1.5cm;
+  }
+}

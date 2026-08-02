@@ -1,0 +1,30 @@
+# Cloudflare Pages reads this file at deploy time.
+#
+# The CSP assumes self-hosted fonts and no third-party script. 'unsafe-inline'
+# on style-src is required by Tailwind's inlined stylesheet and the handful of
+# `style="--i: n"` stagger attributes; there is no inline script to protect, so
+# script-src stays strict.
+#
+# Ship this as Content-Security-Policy-Report-Only first, check the console on
+# every route, then rename to the enforcing header. A CSP that is wrong fails
+# silently and takes assets down with it.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.fkriachmd.qzz.io data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+# Content-hashed by the build — safe to cache forever. Fonts land in
+# /_astro/fonts/, so this one rule covers CSS and fonts alike.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML must revalidate, or a content edit stays invisible after a rebuild.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate

@@ -1,0 +1,40 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getSections } from "../lib/sections";
+
+// Same source as the nav and the footer: a 404 that offers a route to an empty
+// page is the second broken promise in a row.
+const sections = await getSections();
+---
+
+<Layout
+  title="Page not found — Fikri Achmad"
+  description="That page does not exist. Browse the projects, the résumé, or the other sections of the site."
+  noindex
+>
+  <div class="grid max-w-4xl gap-y-5 px-8 py-20 md:px-10">
+    <h1 class="text-3xl/9 font-bold">Page not found</h1>
+    <p class="text-slate-600">
+      That URL does not exist here. Try {
+        sections.map((section, i) => (
+          <>
+            {/* "a or b" with two, "a, b, or c" with three. The list length
+                depends on what is published, so the joiner has to as well. */}
+            {i > 0 &&
+              (i === sections.length - 1
+                ? sections.length === 2
+                  ? " or "
+                  : ", or "
+                : ", ")}
+            <a
+              href={section.href}
+              class="text-theme-500 hover:text-theme-600 decoration-theme-300 underline decoration-1 underline-offset-4"
+            >
+              {section.label.toLowerCase()}
+            </a>
+          </>
+        ))
+      }.
+    </p>
+  </div>
+</Layout>

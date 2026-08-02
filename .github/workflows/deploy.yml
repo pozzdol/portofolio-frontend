@@ -1,0 +1,57 @@
+name: build & deploy
+
+# This file is also a portfolio artefact: it is the only public evidence of the
+# CI/CD claim on the site, so it is written to be read.
+on:
+  push:
+    branches: [main]
+  # Content is edited from a laptop admin panel that never deploys anything, and
+  # rows carry a `published_at` that may be in the future. Without a scheduled
+  # rebuild, "schedule this for next Monday" silently never happens.
+  # For instant publishing, call the Cloudflare Pages deploy hook from the admin
+  # panel — 02:00 UTC means a same-day edit is otherwise up to 24 hours late.
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # Type check, schema tests, build, then assertions against the built HTML.
+      # The build itself fails on any published row still holding template text.
+      - name: Verify
+        run: bun run verify
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: pages deploy dist --project-name portofolio
+
+      # The site returned HTTP 530 for an unknown length of time because nothing
+      # ever checked. This is the cheapest possible check that it is actually up.
+      - name: Smoke test
+        run: |
+          for path in / /resume /certificates; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 5 \
+              "https://fikriachmad.dev${path}")
+            echo "${path} -> ${code}"
+            [ "$code" = "200" ] || exit 1
+          done

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Source for public/og-default.png. Not served — this lives in src/ so the card
+  can be regenerated when the job title, stack line, or palette changes.
+
+  Regenerate (needs Bricolage Grotesque + Geist available to fontconfig):
+    inkscape src/assets/og-default.svg ––export-type=png \
+      ––export-filename=/tmp/og.png ––export-width=1200 ––export-height=630
+    bun -e "require('sharp')('/tmp/og.png').png({palette:true,effort:10}) \
+      .toFile('public/og-default.png')"
+
+  Colours are the sRGB equivalents of the OKLCH tokens in src/styles/tokens.css:
+  paper #fdf9f5 · theme-100 #faf2e8 · theme-200 #ece0d2 · theme-300 #e0cfba
+  theme-500 #b44805 · theme-900 #2e1c14 · slate-600 #645850 · slate-500 #746961
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <!-- Same 26px dot grid as the main column: a printed page, not decoration. -->
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="translate(-1,-1)">
+      <circle cx="1" cy="1" r="1" fill="#e0cfba"/>
+    </pattern>
+    <clipPath id="avatarClip">
+      <circle cx="200" cy="285" r="76"/>
+    </clipPath>
+  </defs>
+
+  <!-- paper (the identity column) -->
+  <rect width="1200" height="630" fill="#fdf9f5"/>
+
+  <!-- the printed page (the content column), mirroring the site's 1/3 + 2/3 split -->
+  <rect x="400" y="0" width="800" height="630" fill="#faf2e8"/>
+  <rect x="400" y="0" width="800" height="630" fill="url(#dots)"/>
+  <rect x="400" y="0" width="1" height="630" fill="#ece0d2"/>
+
+  <!-- avatar with the concentric hairlines from .avatar -->
+  <circle cx="200" cy="285" r="76" fill="#faf2e8"/>
+  <image x="124" y="209" width="152" height="152" clip-path="url(#avatarClip)" xlink:href="../../public/favicon.png"/>
+  <circle cx="200" cy="285" r="76.5" fill="none" stroke="#e0cfba" stroke-width="1"/>
+  <circle cx="200" cy="285" r="81" fill="none" stroke="#fdf9f5" stroke-width="8"/>
+  <circle cx="200" cy="285" r="85.5" fill="none" stroke="#ece0d2" stroke-width="1"/>
+
+  <text x="200" y="410" font-family="Geist" font-weight="600" font-size="19" letter-spacing="1.1" fill="#746961" text-anchor="middle">FIKRIACHMAD.DEV</text>
+
+  <!-- name -->
+  <text x="464" y="252" font-family="Bricolage Grotesque" font-weight="700" font-size="92" letter-spacing="-2.8" fill="#2e1c14">Fikri Achmad</text>
+
+  <!-- the line every reader looks at for "what is this person" -->
+  <text x="464" y="312" font-family="Geist" font-weight="600" font-size="35" fill="#b44805">Fullstack Web Developer</text>
+  <text x="464" y="352" font-family="Geist" font-weight="400" font-size="24" fill="#645850">Business Integration at PT Tata Metal Lestari</text>
+
+  <line x1="464" y1="400" x2="1128" y2="400" stroke="#ece0d2" stroke-width="1"/>
+
+  <!-- the stack, in words rather than icons -->
+  <text x="464" y="444" font-family="Geist" font-weight="400" font-size="25" fill="#645850">Laravel · Inertia · React · PostgreSQL</text>
+  <text x="464" y="482" font-family="Geist" font-weight="400" font-size="25" fill="#645850">Python · Flask · Ubuntu · Nginx · Docker · CI/CD · IoT</text>
+
+  <!-- accent rule, bottom-anchored -->
+  <rect x="464" y="536" width="88" height="6" rx="3" fill="#b44805"/>
+  <text x="464" y="586" font-family="Geist" font-weight="400" font-size="22" fill="#746961">Builds it, deploys it, and keeps it running.</text>
+</svg>

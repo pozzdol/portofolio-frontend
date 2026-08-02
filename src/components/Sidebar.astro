@@ -1,37 +1,121 @@
 ---
 import { Icon } from "astro-icon/components";
+import { site, locationLine, whatsappUrl, mailto } from "../config/site";
+
+/**
+ * The identity column. Two rules govern what goes here:
+ *
+ * 1. The line under a name is the title line — every reader has that convention
+ *    from CVs and business cards and looks there for "what is this person".
+ *    It used to read "It's nice to meet you.", which is charming and carries no
+ *    information in the highest-attention slot on the page.
+ * 2. The name is a <p>, not an <h1>. It is branding, not the page heading, and
+ *    it repeats on every route. Each page now owns its own keyword-bearing
+ *    <h1>. The styling is unchanged, so nothing moves visually.
+ */
 ---
 
 <header
   class="col-span-4 flex flex-col gap-8 px-8 py-15 md:px-12 lg:fixed lg:right-2/3 lg:mt-0 lg:w-1/3 lg:max-w-md"
 >
   <img
-    src="/favicon.png"
-    alt=""
+    src={site.avatar}
+    alt={`${site.name}, ${site.jobTitle.toLowerCase()}`}
     width="72"
     height="72"
     class="avatar reveal"
     style="--i: 0"
+    fetchpriority="high"
+    decoding="async"
   />
+
   <div class="reveal flex flex-col gap-1" style="--i: 1">
     <div class="spec text-slate-500">Hi there, I’m</div>
-    <h1 class="-mt-1 text-5xl/11 font-bold text-slate-900 md:text-6xl/14">
+    <p class="-mt-1 text-5xl/11 font-bold text-slate-900 md:text-6xl/14">
       Fikri <span class="hidden lg:inline"><br /></span>Achmad
-    </h1>
-    <div class="text-lg text-slate-500">It’s nice to meet you.</div>
+    </p>
+    {/* Two lines, on purpose: the searchable title, then the real one. The
+        employer name is also the strongest entity disambiguator available —
+        "Fikri Achmad" collides heavily; "Fikri Achmad at PT Tata Metal
+        Lestari" does not. */}
+    <p class="text-theme-900 text-lg font-semibold">{site.jobTitle}</p>
+    <p class="text-slate-600">
+      {site.employmentTitle} at <a
+        href={site.employerUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hover:text-theme-500 decoration-theme-300 underline decoration-1 underline-offset-4"
+        >{site.employer}<span class="sr-only"> (opens in a new tab)</span></a
+      >
+    </p>
+    {
+      locationLine && (
+        <p class="spec text-slate-500">
+          {locationLine} · {site.timezone}
+        </p>
+      )
+    }
   </div>
-  <p class="reveal text-lg text-slate-700" style="--i: 2">
-    I build full-stack web apps, and IoT when the work needs to touch hardware.
-    Open to both - freelance or full-time. Games are the hobby: Waluh Studio is
-    one person, and that person draws the pixels and writes the code.
-  </p>
-  <div class="reveal flex items-center gap-1.5 text-slate-700" style="--i: 3">
-    <Icon name="tabler:hand-stop" class="text-theme-500 text-xl" />
-    <span class="font-medium">Say Hi,</span>
-    <a
-      href="mailto:developer@fikriachmad.dev?subject=Hi%20from%20the%20internet"
-      class="text-theme-500 hover:text-theme-600 underline decoration-theme-300 decoration-1 underline-offset-4 hover:decoration-theme-500"
-      >developer@fikriachmad.dev</a
-    >
+
+  {/* Side projects stay out of the chrome. They belong on the projects page,
+      where each one stands on its own and can be added or dropped without
+      touching the identity block. */}
+  <p class="reveal text-lg text-slate-700" style="--i: 2">{site.bio}</p>
+
+  {
+    site.availability && (
+      <div
+        class="reveal border-theme-200 bg-theme-50 flex items-center gap-3 rounded-md border px-4 py-3"
+        style="--i: 3"
+      >
+        <span class="relative flex size-2.5 shrink-0" aria-hidden="true">
+          <span class="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60" />
+          <span class="relative inline-flex size-2.5 rounded-full bg-green-600" />
+        </span>
+        <p class="text-sm text-slate-700">{site.availability}</p>
+      </div>
+    )
+  }
+
+  <div class="reveal flex flex-col gap-3" style="--i: 4">
+    {/* Names the outcome the visitor wants, not the mechanism. */}
+    <a href={mailto("Project enquiry")} class="btn btn-primary justify-center">
+      <Icon name="tabler:mail" aria-hidden="true" focusable="false" />
+      Start a project
+    </a>
+
+    {
+      whatsappUrl && (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-secondary justify-center"
+        >
+          <Icon name="tabler:brand-whatsapp" aria-hidden="true" focusable="false" />
+          WhatsApp
+          <span class="sr-only">(opens in a new tab)</span>
+        </a>
+      )
+    }
+
+    {
+      site.cv && (
+        <a href={site.cv} download class="btn btn-secondary justify-center">
+          <Icon name="tabler:download" aria-hidden="true" focusable="false" />
+          Download CV
+        </a>
+      )
+    }
+
+    {/* Rendered as selectable text so a mailto: that silently fails on webmail
+        still leaves the reader something to copy. */}
+    <p class="spec text-slate-500">
+      Or email <a
+        href={`mailto:${site.email}`}
+        class="text-theme-500 hover:text-theme-600 decoration-theme-300 underline decoration-1 underline-offset-4"
+        >{site.email}</a
+      > — {site.responseTime}.
+    </p>
   </div>
 </header>

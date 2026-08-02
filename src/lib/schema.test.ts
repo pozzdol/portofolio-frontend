@@ -2,29 +2,31 @@ import assert from "node:assert/strict";
 import * as S from "./schema";
 
 // ponytail: one runnable check, no framework. `bun src/lib/schema.test.ts`.
-// Fixtures mirror the rows currently in the admin panel's database, so a schema
-// drift in the admin shows up here before it shows up as an empty page.
+// Fixtures mirror the *shape* of the admin panel's rows, not their contents, so
+// a schema drift in the admin shows up here before it shows up as an empty page.
+// Deliberately generic: real project names change, and a fixture that names one
+// turns a rename into a failing test for no reason.
 
 const tech = [{ slug: "astro", label: "Astro", icon: "tabler:brand-astro" }];
 
 // A project row as `select *` returns it, R2 URL included.
 const project = S.Project.parse({
   id: "019fb159-041a-72ca-8be2-b07df0c26a5d",
-  slug: "waluh-studio",
-  title: "Waluh Studio",
-  summary: "The site for my own studio.",
-  live_url: "https://waluh.web.id",
+  slug: "fixture-project",
+  title: "Fixture Project",
+  summary: "One sentence on what it is and who it is for.",
+  live_url: "https://example.com",
   repo_url: null,
   sort_order: 0,
   published_at: new Date(),
   tech,
 });
-assert.equal(project.title, "Waluh Studio");
+assert.equal(project.title, "Fixture Project");
 assert.equal(project.tech[0].icon, "tabler:brand-astro");
 
 const image = S.Image.parse({
-  image_path: "https://cdn.fkriachmd.qzz.io/projects/waluh-studio-Z93TcxiR.webp",
-  image_alt: "Waluh Studio homepage",
+  image_path: "https://cdn.fkriachmd.qzz.io/projects/fixture-Z93TcxiR.webp",
+  image_alt: "Fixture Project homepage",
   image_width: "1444",
   image_height: "537",
 });
@@ -55,6 +57,8 @@ const job = S.Experience.parse({
 });
 assert.equal(S.period(job.started_on, job.ended_on), "2024 - Present");
 assert.equal(S.period(new Date("2020-03-01"), new Date("2025-06-30")), "2020 - 2025");
+// A role that starts and ends in one year needs months, or it reads "2025 - 2025".
+assert.equal(S.period(new Date("2025-03-01"), new Date("2025-05-31")), "Mar - May 2025");
 
 const cert = S.Certificate.parse({
   slug: "example-certificate",

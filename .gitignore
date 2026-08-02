@@ -22,7 +22,14 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
-docs
+# Documentation is an asset, not noise: database-schema.md is the strongest
+# evidence of engineering judgement in this repo, so it ships. docs/audit/ does
+# not — it is a candid self-assessment and a pricing plan, and this repo is
+# public.
+docs/*
+!docs/database-schema.md
+
 .hallmark
 .vscode
 .claude
+graphify-out

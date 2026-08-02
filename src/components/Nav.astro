@@ -1,10 +1,49 @@
 ---
 import { Icon } from "astro-icon/components";
+import { site, whatsappUrl, mailto } from "../config/site";
+import { getSections } from "../lib/sections";
 
-const tabs = [
-  { href: "/", label: "Projects" },
-  { href: "/resume", label: "Resumé" },
-  { href: "/certificates", label: "Certificates" },
+const tabs = await getSections();
+
+/**
+ * `rel="me"` on the profiles is the reciprocal identity claim. Add the matching
+ * link back from the GitHub profile README and the LinkedIn "Website" field —
+ * bidirectional rel="me" is the cheapest identity proof available, and it is
+ * what stops a retrieval system hedging with "according to his own website".
+ */
+const socials = [
+  {
+    href: mailto("Hi from the internet"),
+    icon: "tabler:mail",
+    label: `Email ${site.name}`,
+    me: false,
+    external: false,
+  },
+  {
+    href: site.github,
+    icon: "tabler:brand-github",
+    label: `${site.name} on GitHub`,
+    me: true,
+    external: true,
+  },
+  {
+    href: site.linkedin,
+    icon: "tabler:brand-linkedin",
+    label: `${site.name} on LinkedIn`,
+    me: true,
+    external: true,
+  },
+  ...(whatsappUrl
+    ? [
+        {
+          href: whatsappUrl,
+          icon: "tabler:brand-whatsapp",
+          label: `Message ${site.name} on WhatsApp`,
+          me: false,
+          external: true,
+        },
+      ]
+    : []),
 ];
 
 // Trailing slashes vary by build config; normalise both sides before comparing.
@@ -15,14 +54,19 @@ const here = norm(Astro.url.pathname);
 <div
   class="border-theme-200 bg-theme-50/80 sticky top-0 z-1 w-full border-b px-4 pr-6 backdrop-blur-3xl md:px-8 lg:w-full lg:px-6"
 >
-  <!-- Three tabs plus four icons overflow a 320px viewport, so the icon row
-       wraps to its own line on the narrowest screens instead of being clipped. -->
+  <!-- Three tabs plus the icon row overflow a 320px viewport, so the icons
+       wrap to their own line on the narrowest screens instead of being clipped. -->
   <div class="flex flex-wrap items-center gap-x-3">
-    <nav class="main-nav flex text-sm md:text-base" style="margin-bottom: -1px">
+    <nav
+      class="main-nav flex text-sm md:text-base"
+      aria-label="Sections"
+      style="margin-bottom: -1px"
+    >
       {
         tabs.map((tab) => (
           <a
             href={tab.href}
+            aria-current={here === norm(tab.href) ? "page" : undefined}
             class:list={[
               "shrink-0 px-3 pt-5 pb-3 md:px-4",
               { active: here === norm(tab.href) },
@@ -33,32 +77,26 @@ const here = norm(Astro.url.pathname);
         ))
       }
     </nav>
+
+    <!-- slate-500 (4.77:1) rather than slate-400 (3.27:1), and 44px targets:
+         SC 1.4.11 was passing by 0.27 and SC 2.5.8 was failing outright. -->
     <nav
-      class="ml-auto flex shrink-0 gap-3 pb-3 text-lg text-slate-400 md:gap-4 md:pb-0"
+      class="ml-auto flex shrink-0 gap-0.5 pb-1 text-lg text-slate-500 md:gap-1 md:pb-0"
+      aria-label="Profiles and contact"
     >
-      <a
-        href="mailto:developer@fikriachmad.dev?subject=Hi%20from%20the%20internet"
-        class="hover:text-theme-500"
-        aria-label="email"><Icon name="tabler:at" /></a
-      >
-      <a
-        href="https://github.com/imathis"
-        class="hover:text-theme-500"
-        target="_blank"
-        aria-label="github"><Icon name="tabler:brand-github" /></a
-      >
-      <a
-        href="https://x.com/imathis"
-        class="hover:text-theme-500"
-        target="_blank"
-        aria-label="x.com"><Icon name="tabler:brand-x" /></a
-      >
-      <a
-        href="https://www.linkedin.com/in/imathis/"
-        class="hover:text-theme-500"
-        target="_blank"
-        aria-label="linked in"><Icon name="tabler:brand-linkedin" /></a
-      >
+      {
+        socials.map((social) => (
+          <a
+            href={social.href}
+            class="hover:text-theme-500 flex size-11 items-center justify-center rounded-md"
+            target={social.external ? "_blank" : undefined}
+            rel={social.me ? "me noopener noreferrer" : social.external ? "noopener noreferrer" : undefined}
+            aria-label={social.label}
+          >
+            <Icon name={social.icon} aria-hidden="true" focusable="false" />
+          </a>
+        ))
+      }
     </nav>
   </div>
 </div>

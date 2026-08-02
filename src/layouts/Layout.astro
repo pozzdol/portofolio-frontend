@@ -1,28 +1,278 @@
 ---
+import { Font } from "astro:assets";
+import { Icon } from "astro-icon/components";
 import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Sidebar from "../components/Sidebar.astro";
+import { site, sameAs, employmentLine } from "../config/site";
+import { getSections } from "../lib/sections";
 
 interface Props {
+  /** Pattern: `{Page} — {Name} | {role + primary stack}`. Front-load the name. */
   title: string;
+  /** Hand-written, under 155 characters. Never generated from body text. */
+  description: string;
+  /** Set while a page has no content yet — better absent than indexed thin. */
+  noindex?: boolean;
+  /** Absolute or root-relative; resolved against `site` for the OG tags. */
+  image?: string;
 }
 
-const { title } = Astro.props;
+const {
+  title,
+  description,
+  noindex = false,
+  image = site.ogImage,
+} = Astro.props;
+
+// `trailingSlash: 'never'`, so strip any and keep "/" for the root.
+const canonical = new URL(
+  Astro.url.pathname.replace(/\/+$/, "") || "/",
+  Astro.site,
+);
+const ogImage = new URL(image, Astro.site);
+const year = new Date().getUTCFullYear();
+
+/**
+ * One Person entity, referenced by @id from every other block on the site.
+ * Fields the config does not know yet are omitted rather than guessed — a wrong
+ * `worksFor` is worse for entity resolution than a missing one.
+ */
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": `${site.url}/#person`,
+  name: site.name,
+  givenName: site.givenName,
+  familyName: site.familyName,
+  url: site.url,
+  image: new URL(site.avatar, Astro.site).href,
+  email: `mailto:${site.email}`,
+  jobTitle: site.jobTitle,
+  description: site.bio,
+  worksFor: {
+    "@type": "Organization",
+    name: site.employer,
+    url: site.employerUrl,
+  },
+  hasOccupation: {
+    "@type": "Occupation",
+    name: site.employmentTitle,
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: site.countryCode,
+    ...(site.city && { addressLocality: site.city }),
+  },
+  knowsAbout: site.knowsAbout,
+  knowsLanguage: [
+    { "@type": "Language", name: "Indonesian" },
+    { "@type": "Language", name: "English" },
+  ],
+  sameAs,
+  seeks: {
+    "@type": "Demand",
+    name: "Freelance and full-time fullstack web development engagements",
+  },
+};
+
+const website = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${site.url}/#website`,
+  url: site.url,
+  name: `${site.name} — ${site.jobTitle}`,
+  inLanguage: "en",
+  publisher: { "@id": `${site.url}/#person` },
+};
+
+const footerLinks = await getSections();
+
+// Profiles only. Individual projects live on the projects page, not in the
+// footer of every route.
+const elsewhere = [
+  { href: site.github, label: "GitHub" },
+  { href: site.linkedin, label: "LinkedIn" },
+];
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap"
-    />
-    <meta name="generator" content={Astro.generator} />
+    {
+      /* The only runtime origin the site depends on: screenshots and certificate
+        scans. Fonts and CSS are same-origin now. */
+    }
+    <link rel="preconnect" href="https://cdn.fkriachmd.qzz.io" crossorigin />
+
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <meta name="author" content={site.name} />
+    <meta name="theme-color" content="#b44805" />
+    {
+      /* The design is a paper metaphor; declaring it stops the browser theming
+        form controls and scrollbars dark and clashing. */
+    }
+    <meta name="color-scheme" content="light" />
+
+    {
+      /* Self-hosted, same origin, preloaded. The two above-the-fold faces only. */
+    }
+    <Font cssVariable="--font-bricolage" preload />
+    <Font cssVariable="--font-geist" preload />
+    <Font cssVariable="--font-geist-mono" />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${site.name} — ${site.jobTitle}`} />
+    <meta property="profile:first_name" content={site.givenName} />
+    <meta property="profile:last_name" content={site.familyName} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta
+      name="twitter:image:alt"
+      content={`${site.name} — ${site.jobTitle}`}
+    />
+
+    <meta name="generator" content={Astro.generator} />
+
+    {
+      /* set:html is required — as a child it would be HTML-escaped into invalid JSON. */
+    }
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(person)}
+    />
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(website)}
+    />
+
+    <slot name="head" />
   </head>
   <body>
-    <slot />
+    <a href="#main" class="skip-link">Skip to main content</a>
+    <div class="lg:grid lg:grid-cols-12">
+      <Sidebar />
+      {/* tabindex="-1" so the skip link moves focus, not only the viewport. */}
+      <main
+        id="main"
+        tabindex="-1"
+        class="border-theme-200 bg-theme-100 col-span-8 col-start-5 lg:min-h-dvh lg:border-l"
+      >
+        <Nav />
+        <slot />
+
+        {
+          /* @container on the footer itself: the `@2xl:` columns below are
+            container queries, and `main` is not a container — without this the
+            three columns silently stayed stacked at every width. */
+        }
+        <footer
+          class="@container border-theme-200 border-t px-8 py-12 md:px-10"
+          aria-labelledby="footer-heading"
+        >
+          <h2 id="footer-heading" class="sr-only">Site footer</h2>
+          <div class="grid gap-8 @2xl:grid-cols-3">
+            <div>
+              <p class="font-display text-xl font-bold">{site.name}</p>
+              <p class="mt-1 text-slate-600">
+                {site.jobTitle} — {employmentLine}.
+              </p>
+              <a
+                href={`mailto:${site.email}?subject=${encodeURIComponent("Project enquiry")}`}
+                class="btn btn-primary mt-4"
+              >
+                <Icon name="tabler:mail" aria-hidden="true" focusable="false" />
+                Start a project
+              </a>
+            </div>
+
+            <nav aria-labelledby="footer-site">
+              <h3 id="footer-site" class="spec text-slate-500">Site</h3>
+              <ul class="mt-3 grid gap-2 text-slate-700">
+                {
+                  footerLinks.map((link) => (
+                    <li>
+                      <a href={link.href} class="hover:text-theme-500">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))
+                }
+                {
+                  site.cv && (
+                    <li>
+                      <a href={site.cv} download class="hover:text-theme-500">
+                        CV (PDF)
+                      </a>
+                    </li>
+                  )
+                }
+              </ul>
+            </nav>
+
+            <nav aria-labelledby="footer-elsewhere">
+              <h3 id="footer-elsewhere" class="spec text-slate-500">
+                Elsewhere
+              </h3>
+              <ul class="mt-3 grid gap-2 text-slate-700">
+                {
+                  elsewhere.map((link) => (
+                    <li>
+                      <a
+                        href={link.href}
+                        rel="me noopener noreferrer"
+                        target="_blank"
+                        class="hover:text-theme-500"
+                      >
+                        {link.label}
+                        <span class="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    </li>
+                  ))
+                }
+                <li>
+                  <a
+                    href={`mailto:${site.email}`}
+                    class="hover:text-theme-500 break-all"
+                  >
+                    {site.email}
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          {
+            /* Aimed at the engineer who scrolled this far: a technical claim and
+              the source that proves it, in one line. */
+          }
+          <p
+            class="colophon border-theme-200 mt-10 border-t pt-6 text-slate-500"
+          >
+            © {year}{" "}
+            {site.name} · Built with Love
+          </p>
+        </footer>
+      </main>
+    </div>
   </body>
 </html>

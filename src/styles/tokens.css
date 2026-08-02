@@ -9,9 +9,13 @@
 
 @theme {
   /* ---- type ------------------------------------------------------------ */
-  --font-display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
+  /* The families are declared in astro.config.mjs and self-hosted; Astro emits
+     --font-bricolage / --font-geist / --font-geist-mono on :root, each already
+     carrying its metric-adjusted fallback stack. These three names stay stable
+     so every `font-display` / `font-sans` / `font-mono` utility keeps working. */
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
 
   /* ---- paper → ink ----------------------------------------------------- */
   /* 50 lifts above the paper (sticky bar, note cards); 100 is the main column;
@@ -21,7 +25,7 @@
   --color-theme-200: oklch(90.5% 0.022 68);
   --color-theme-300: oklch(85% 0.03 65);
   --color-theme-400: oklch(70% 0.09 50);
-  --color-theme-500: oklch(54% 0.155 44); /* accent · 4.89:1 on paper */
+  --color-theme-500: oklch(54% 0.155 44); /* accent · 5.16:1 on paper, 4.86:1 on theme-100 */
   --color-theme-600: oklch(46% 0.14 42); /* accent pressed · 6.84:1 */
   --color-theme-700: oklch(38% 0.1 42);
   --color-theme-800: oklch(31% 0.055 46);
@@ -41,10 +45,10 @@
   --color-slate-900: oklch(25% 0.02 50);
 
   /* Second hue, list-marker scale only: the resume's check marks. Warm-neutral
-     green reads as "confirmed" without fighting the terracotta.
-     ponytail: overriding violet-600 re-tints the existing markup's check icons
-     without editing 20 SVGs. Rename to --color-confirm if the markup changes. */
-  --color-violet-600: oklch(52% 0.09 145);
+     green reads as "confirmed" without fighting the terracotta. 4.76:1 on
+     theme-100. Named for its job now — it used to override `violet-600`, which
+     meant anyone writing `text-violet-600` expecting violet silently got green. */
+  --color-confirm: oklch(52% 0.09 145);
 
   /* ---- shape ----------------------------------------------------------- */
   --radius-md: 4px; /* printed, not app-chrome */
