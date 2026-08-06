@@ -28,16 +28,17 @@ import postgres from "postgres";
 
 const DIST = "dist";
 
-const url = readFileSync(".env", "utf8").match(/^DATABASE_URL=(.*)$/m)?.[1];
+// `process.env`, not a hand-parsed `.env`: on Cloudflare Pages the credential is
+// an encrypted build variable and there is no `.env` in the clone, so reading the
+// file threw ENOENT and failed the build *after* astro had already succeeded.
+// Locally bun loads `.env` into the environment itself, so one lookup covers both.
+const url = process.env.DATABASE_URL;
 if (!url) {
-  console.error("sitemap-lastmod: DATABASE_URL not found in .env — skipping");
+  console.error("sitemap-lastmod: DATABASE_URL not set — skipping");
   process.exit(0);
 }
 
-const sql = postgres(url.trim().replace(/^["']|["']$/g, ""), {
-  max: 1,
-  idle_timeout: 5,
-});
+const sql = postgres(url, { max: 1, idle_timeout: 5 });
 
 /** Path (no trailing slash) -> ISO date. Only rows the build actually rendered. */
 const lastmod = new Map<string, string>();
