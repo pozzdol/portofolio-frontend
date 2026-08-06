@@ -1,0 +1,288 @@
+---
+import { Icon } from "astro-icon/components";
+import { getCollection, render } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import { site, locationLine } from "../../config/site";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("posts");
+
+  return posts.map((post) => ({
+    params: { slug: post.data.slug },
+    // Every post, so a "related" block can be computed without a second query.
+    props: { post, all: posts },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post, all } = Astro.props;
+const { Content } = await render(post);
+
+const iso = (d: Date) => d.toISOString();
+/** The page is in the post's language, so the date is too. */
+const readable = (d: Date) =>
+  d.toLocaleDateString(post.data.lang === "id" ? "id-ID" : "en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+const url = new URL(`/articles/${post.data.slug}`, Astro.site).href;
+
+/**
+ * Related by shared technology, most overlap first, newest as the tie-break.
+ *
+ * The `tech` join is the site's topic taxonomy — the same one projects, roles and
+ * certificates use — so this needs no new data and no new column. Renders nothing
+ * at one post and starts working at two, which is why it can ship before the
+ * archive is big enough to need it.
+ */
+const related = all
+  .filter((other) => other.data.slug !== post.data.slug)
+  .map((other) => ({
+    post: other,
+    shared: other.data.tech.filter((t) =>
+      post.data.tech.some((mine) => mine.slug === t.slug),
+    ).length,
+  }))
+  .filter((entry) => entry.shared > 0)
+  .sort(
+    (a, b) =>
+      b.shared - a.shared ||
+      b.post.data.publishedAt.getTime() - a.post.data.publishedAt.getTime(),
+  )
+  .slice(0, 3);
+
+/**
+ * `dateModified` only when it differs from publication — emitting the two as the
+ * same value on a post that was never edited invites the "freshness" reading
+ * Google gives an actual update.
+ */
+const edited =
+  post.data.updatedAt.getTime() - post.data.publishedAt.getTime() > 60_000;
+
+const articleLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "@id": `${url}#article`,
+  headline: post.data.title,
+  ...(post.data.excerpt && { description: post.data.excerpt }),
+  url,
+  mainEntityOfPage: { "@type": "WebPage", "@id": url },
+  datePublished: iso(post.data.publishedAt),
+  ...(edited && { dateModified: iso(post.data.updatedAt) }),
+  ...(post.data.image && { image: post.data.image.src }),
+  author: { "@id": `${site.url}/#person` },
+  publisher: { "@id": `${site.url}/#person` },
+  inLanguage: post.data.lang,
+  wordCount: post.data.wordCount,
+  ...(post.data.tech.length > 0 && {
+    keywords: post.data.tech.map((t) => t.label).join(", "),
+  }),
+};
+---
+
+<ArticleLayout
+  title={`${post.data.title} | ${site.name}`}
+  description={post.data.excerpt ??
+    `${post.data.title} — written by ${site.name}.`}
+  image={post.data.image ?? undefined}
+  lang={post.data.lang}
+  publishedTime={iso(post.data.publishedAt)}
+  modifiedTime={edited ? iso(post.data.updatedAt) : undefined}
+  tags={post.data.tech.map((t) => t.label)}
+>
+  <script
+    is:inline
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify(articleLd)}
+  />
+
+  {
+    /* max-w-3xl (48rem) is the measure, and every block on this page shares it
+      except the cover. Measured at 64rem the body ran 110 characters per line;
+      45-75 is the readable band, so 48rem lands near 76 and the eye keeps its
+      place on the return sweep. The rail in ArticleLayout uses the same width so
+      "← Articles" sits directly above the title instead of floating left of it. */
+  }
+  <article class="mx-auto max-w-3xl px-6 pt-10 pb-4 md:px-8 md:pt-16">
+    <Breadcrumbs
+      crumbs={[
+        { name: "Home", href: "/" },
+        { name: "Articles", href: "/articles" },
+        { name: post.data.title, href: `/articles/${post.data.slug}` },
+      ]}
+      lastLang={post.data.lang}
+    />
+
+    {
+      /* Metadata above the title, stacked in one column — the tag-left /
+        heading-right hanging header is the most recognisable templated-editorial
+        tell, so date and reading time sit directly above the headline instead. */
+    }
+    <p
+      class="spec mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500"
+    >
+      <time datetime={iso(post.data.publishedAt)}>
+        {readable(post.data.publishedAt)}
+      </time>
+      <span aria-hidden="true">·</span>
+      <span>{post.data.readingMinutes} min read</span>
+    </p>
+
+    <h1
+      class="font-display mt-3 text-3xl/tight font-bold text-slate-900 md:text-4xl/tight"
+    >
+      {post.data.title}
+    </h1>
+
+    {
+      /* The reading layout drops the sidebar, which was the only place the author
+        appeared. Without a byline a reader who arrived from a search result has no
+        idea whose site this is, and a retrieved mid-article chunk carries no name
+        to attribute it to. */
+    }
+    <p class="mt-4 flex items-center gap-2.5 text-sm text-slate-600" lang="en">
+      <img
+        src={site.avatar}
+        alt=""
+        width="28"
+        height="28"
+        class="rounded-full"
+        decoding="async"
+      />
+      <span>
+        by <a
+          href="/"
+          rel="author"
+          class="hover:text-theme-600 font-semibold text-slate-900"
+          >{site.name}</a
+        >, {site.jobTitle}
+      </span>
+    </p>
+
+    {
+      post.data.excerpt && (
+        <p class="mt-4 text-lg/relaxed text-slate-600">{post.data.excerpt}</p>
+      )
+    }
+
+    {
+      post.data.tech.length > 0 && (
+        <ul class="mt-5 flex flex-wrap gap-x-4 gap-y-1.5">
+          {post.data.tech.map((t) => (
+            <li class="spec inline-flex items-center gap-1.5 text-slate-600">
+              {t.icon && (
+                <Icon
+                  name={t.icon}
+                  class="text-theme-500 shrink-0 text-sm"
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              )}
+              <span>{t.label}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </article>
+
+  {
+    /* Cover sits between the header and the body, wider than the measure. It is
+      the one element allowed to break the column — a cover cropped to the measure reads
+      as a thumbnail. */
+    post.data.image && (
+      <figure class="mx-auto mt-8 max-w-5xl px-6 md:px-8">
+        <img
+          src={post.data.image.src}
+          alt={post.data.image.alt}
+          width={post.data.image.width ?? undefined}
+          height={post.data.image.height ?? undefined}
+          class="border-theme-200 w-full rounded-md border"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
+    )
+  }
+
+  <div class="prose mx-auto max-w-3xl px-6 pt-10 md:px-8">
+    <Content />
+  </div>
+
+  {
+    related.length > 0 && (
+      <nav
+        aria-labelledby="related-heading"
+        class="mx-auto max-w-3xl px-6 pt-12 md:px-8"
+        lang="en"
+      >
+        <h2 id="related-heading" class="text-xl font-bold">
+          Related
+        </h2>
+        <ul class="mt-4 grid gap-3">
+          {related.map(({ post: other }) => (
+            <li class="flex flex-wrap items-baseline gap-x-3">
+              <a
+                href={`/articles/${other.data.slug}`}
+                class="hover:text-theme-600 font-semibold"
+                lang={other.data.lang}
+              >
+                {other.data.title}
+              </a>
+              <span class="spec text-slate-500">
+                {other.data.readingMinutes} min
+              </span>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  {
+    /* An article used to end at "All articles" and a mailto. This block does three
+      jobs instead: the visible authorship Google's guidance asks for, an
+      attribution a retrieved chunk can inherit, and a way out that is not the
+      back button. */
+  }
+  <div class="mx-auto max-w-3xl px-6 pt-12 md:px-8" lang="en">
+    <hr class="border-theme-200" />
+    <div class="border-theme-200 bg-theme-50 mt-8 rounded-md border p-6">
+      <p class="flex flex-wrap items-baseline justify-between max-w-none">
+        <span class="font-display text-lg font-bold">{site.name}</span>
+        <span class="spec text-slate-500">
+          {site.jobTitle}{locationLine && ` · ${locationLine}`}
+        </span>
+      </p>
+      <p class="mt-2 text-slate-600 max-w-none">{site.bio}</p>
+      {
+        /* One left cluster, not a spread row: the card is 5xl wide but the bio
+          above it stops at the 65ch measure, so a link pushed to the far right
+          would hang off the end of nothing. Without `inline-flex` the arrow
+          drops onto its own line above its label, which is what made this row
+          look broken. */
+      }
+      <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <a href="/" class="btn btn-secondary">See the work</a>
+        <a
+          href="/articles"
+          class="hover:text-theme-600 inline-flex items-center gap-1.5 text-sm text-slate-600"
+        >
+          <Icon name="tabler:arrow-left" aria-hidden="true" focusable="false" />
+          All articles
+        </a>
+        <a
+          href={`mailto:${site.email}?subject=${encodeURIComponent(post.data.title)}`}
+          class="hover:text-theme-600 text-sm text-slate-600 ml-auto"
+        >
+          Reply by email
+        </a>
+      </div>
+    </div>
+  </div>
+</ArticleLayout>

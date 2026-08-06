@@ -24,8 +24,10 @@
   }
 
   /* The main column is the printed page: a shade warmer than the margin, with a
-     faint dot grid at the size of a body line. Atmosphere, not decoration. */
-  main {
+     faint dot grid at the size of a body line. Atmosphere, not decoration.
+     A class rather than the `main` element, because the article layout renders a
+     <main> too and a reading page does not want a texture behind its prose. */
+  .paper-dots {
     background-image: radial-gradient(
       var(--color-theme-300) 1px,
       transparent 1px
@@ -209,6 +211,200 @@
 
   .shot:hover img {
     transform: scale(1.02);
+  }
+
+  /* ---- article prose ----------------------------------------------------- */
+  /*
+   * `renderMarkdown()` emits bare HTML — no classes to hook onto — so the body
+   * of a post is styled by element inside `.prose`.
+   *
+   * Written by hand rather than adding @tailwindcss/typography: that plugin
+   * ships a full opinionated scale (~30 KB of CSS) whose colours would then need
+   * overriding token by token to match this palette. Forty lines that reference
+   * the tokens directly are smaller and cannot disagree with the rest of the site.
+   *
+   * Rhythm comes from margin-top on siblings, not margin-bottom, so two adjacent
+   * blocks never double their gap. The heading rules below still need a
+   * first-child reset — their margins are larger than the sibling rule's.
+   */
+  .prose {
+    color: var(--color-slate-700);
+    font-size: 1.0625rem;
+    line-height: 1.75;
+  }
+
+  .prose > * + * {
+    margin-top: 1.25em;
+  }
+
+  /* The heading margins below are generous on purpose, but they must not apply to
+     the first block — a post opening on an h2 otherwise starts ~110px down. */
+  .prose > :first-child {
+    margin-top: 0;
+  }
+
+  /* The base layer caps every <p> at 65ch, which is right where a paragraph sits
+     in a wide column. Here the container already owns the measure, and leaving
+     the cap on makes paragraphs stop ~90px short of the figures beside them. */
+  .prose p {
+    max-width: none;
+  }
+
+  .prose h2,
+  .prose h3 {
+    font-family: var(--font-display);
+    color: var(--color-theme-900);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* 1.75rem against a 1.0625rem body is a 1.65x step. At the old 1.5rem the step
+     was 1.41x, which is not enough to announce a section boundary in a document
+     this long - nine headings over eight thousand pixels of scroll. */
+  .prose h2 {
+    margin-top: 2.25em;
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .prose h3 {
+    margin-top: 1.75em;
+    font-size: 1.2rem;
+    line-height: 1.35;
+  }
+
+  /* Anchor target offset: the return rail is sticky, so a heading jumped to from
+     a table of contents would otherwise land underneath it. */
+  .prose :is(h2, h3)[id] {
+    scroll-margin-top: 5rem;
+  }
+
+  .prose strong {
+    color: var(--color-theme-900);
+    font-weight: 600;
+  }
+
+  .prose a {
+    color: var(--color-theme-500);
+    text-decoration: underline;
+    text-decoration-color: var(--color-theme-300);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .prose a:hover {
+    color: var(--color-theme-600);
+    text-decoration-color: var(--color-theme-500);
+  }
+
+  .prose :is(ul, ol) {
+    padding-left: 1.5em;
+  }
+
+  .prose ul {
+    list-style: disc;
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose li + li {
+    margin-top: 0.4em;
+  }
+
+  .prose li::marker {
+    color: var(--color-theme-400);
+  }
+
+  .prose blockquote {
+    border-left: 3px solid var(--color-theme-300);
+    padding-left: 1.1em;
+    color: var(--color-slate-600);
+    font-style: italic;
+  }
+
+  /* A blockquote holding a list is a callout, not a quotation - the TL;DR block
+     is the page's own summary, not someone else's words. Italic belongs to short
+     borrowed sentences; six numbered points carrying inline code are unreadable
+     in it, and the code chips inherit the slant too. */
+  .prose blockquote:is(:has(ol), :has(ul)) {
+    font-style: normal;
+    color: var(--color-theme-900);
+  }
+
+  .prose blockquote :is(ol, ul) {
+    margin-top: 0;
+  }
+
+  /* Figures break the measure on purpose — an image constrained to 68ch reads as
+     an afterthought. Negative margin only where there is room for it. */
+  .prose figure {
+    margin-top: 2em;
+  }
+
+  .prose figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-theme-200);
+  }
+
+  .prose figcaption {
+    margin-top: 0.6em;
+    color: var(--color-slate-500);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .prose figcaption:empty {
+    display: none;
+  }
+
+  .prose :not(pre) > code {
+    background-color: var(--color-theme-100);
+    border: 1px solid var(--color-theme-200);
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  .prose pre {
+    background-color: var(--color-theme-100);
+    border: 1px solid var(--color-theme-200);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    /* Long lines scroll inside the block; the page itself must never scroll
+       sideways because of a code sample. */
+    overflow-x: auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .prose hr {
+    margin-top: 2.5em;
+    border: 0;
+    border-top: 1px solid var(--color-theme-200);
+  }
+
+  .prose :is(table) {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .prose :is(td, th) {
+    border: 1px solid var(--color-theme-200);
+    padding: 0.45em 0.7em;
+    text-align: left;
+  }
+
+  .prose th {
+    background-color: var(--color-theme-100);
+    color: var(--color-theme-900);
   }
 }
 

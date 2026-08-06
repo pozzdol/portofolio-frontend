@@ -1,0 +1,144 @@
+---
+import { Icon } from "astro-icon/components";
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { site } from "../../config/site";
+
+/**
+ * The list keeps the site's Feature Stack shape — sidebar and all. Only the post
+ * itself switches to the article layout, because only the post is a long read.
+ */
+const posts = await getCollection("posts");
+
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+/**
+ * `en-GB` regardless of post language: this page's own chrome is English, the
+ * dates sit in it, and a mixed-language index reads worse than a consistent one.
+ * The post page formats its date in the post's language, where the page *is* that
+ * language.
+ */
+const readable = (d: Date) =>
+  d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+const listLd = {
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "@id": `${site.url}/articles#blog`,
+  name: `${site.name} — articles`,
+  // No channel-level inLanguage: the archive is bilingual, so declaring one
+  // language for it would be wrong about half of it. Each post carries its own.
+  author: { "@id": `${site.url}/#person` },
+  blogPost: posts.map((post) => ({
+    "@type": "BlogPosting",
+    headline: post.data.title,
+    url: `${site.url}/articles/${post.data.slug}`,
+    inLanguage: post.data.lang,
+    datePublished: post.data.publishedAt.toISOString(),
+    ...(post.data.excerpt && { description: post.data.excerpt }),
+  })),
+};
+---
+
+<Layout
+  title={`Articles | ${site.name}`}
+  description="Notes on building and running web applications — Laravel, Astro, PostgreSQL, and the decisions behind them."
+  noindex={posts.length === 0}
+>
+  <script
+    is:inline
+    slot="head"
+    type="application/ld+json"
+    set:html={JSON.stringify(listLd)}
+  />
+
+  <div
+    class="@container grid max-w-4xl gap-y-5 py-10 @md:gap-y-10 @md:py-15 @lg:py-20"
+  >
+    <div class="px-8 md:px-10">
+      <h1 class="text-3xl/9 font-bold">Articles</h1>
+      <p class="mt-3 text-slate-600">
+        What I ran into building things, and what I would do differently.
+      </p>
+    </div>
+
+    <h2 class="sr-only">Posts</h2>
+
+    {
+      posts.length === 0 && (
+        <div class="px-8 py-16 md:px-10">
+          <p class="text-lg font-semibold">Nothing published yet.</p>
+          <p class="mt-2 text-slate-600">
+            An empty page is more honest than a padded one. The work itself is on
+            the projects page.
+          </p>
+          <a href="/" class="btn btn-primary mt-6">See the projects</a>
+        </div>
+      )
+    }
+
+    {
+      posts.map((post, i) => (
+        <>
+          {i > 0 && <hr class="border-theme-200 my-5 @xl:ml-10" />}
+          <article class="@container reveal-scroll">
+            <div class="flex flex-col gap-5 px-8 md:px-10">
+              <div class="grid gap-2">
+                <p class="spec flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500">
+                  <time datetime={iso(post.data.publishedAt)}>
+                    {readable(post.data.publishedAt)}
+                  </time>
+                  <span aria-hidden="true">·</span>
+                  <span>{post.data.readingMinutes} min</span>
+                </p>
+
+                <a
+                  href={`/articles/${post.data.slug}`}
+                  class="hover:text-theme-600 group flex items-start gap-2"
+                >
+                  <h3 class="text-2xl/8 font-bold" lang={post.data.lang}>
+                    {post.data.title}
+                  </h3>
+                  <Icon
+                    name="tabler:arrow-right"
+                    class="text-theme-500 mt-2 size-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                    focusable="false"
+                  />
+                </a>
+              </div>
+
+              {post.data.excerpt && (
+                <p class="text-slate-600" lang={post.data.lang}>
+                  {post.data.excerpt}
+                </p>
+              )}
+
+              {post.data.image && (
+                <a
+                  href={`/articles/${post.data.slug}`}
+                  class="shot shadow-theme-200 shadow-md"
+                  tabindex="-1"
+                  aria-hidden="true"
+                >
+                  <img
+                    src={post.data.image.src}
+                    alt=""
+                    width={post.data.image.width ?? undefined}
+                    height={post.data.image.height ?? undefined}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
+                </a>
+              )}
+            </div>
+          </article>
+        </>
+      ))
+    }
+  </div>
+</Layout>

@@ -1,0 +1,235 @@
+---
+import { Font } from "astro:assets";
+import { site, sameAs } from "../config/site";
+
+/**
+ * Every `<head>` tag for every route, in one place.
+ *
+ * Split out of Layout so the article layout uses an *identical* head without
+ * copying it. A duplicated head is the easiest way for one route to quietly lose
+ * its canonical or its JSON-LD, and nothing fails loudly when it does.
+ */
+
+interface Props {
+  /** Pattern: `{Page} — {Name} | {role + primary stack}`. Front-load the name. */
+  title: string;
+  /** Hand-written, under 155 characters. Never generated from body text. */
+  description: string;
+  /** Set while a page has no content yet — better absent than indexed thin. */
+  noindex?: boolean;
+  /**
+   * Post cover. Omit for the default card.
+   *
+   * An object rather than a URL because an unfurl reserves the card's aspect box
+   * from the declared width and height *before* fetching the image: a cover
+   * delivered at 1400x788 under a hardcoded 1200x630 renders cropped. A cover
+   * with unknown dimensions therefore falls back to the default card, which
+   * unfurls better than a correct image inside a wrong box.
+   */
+  image?: {
+    src: string;
+    alt: string;
+    width: number | null;
+    height: number | null;
+  };
+  /**
+   * `profile` on the person-shaped routes, `article` on a post. The wrong
+   * og:type on an article loses the published/author metadata in every unfurl,
+   * so this is a prop rather than a constant.
+   */
+  ogType?: "profile" | "article" | "website";
+  /** BCP-47. Must match the `<html lang>` of the page that renders this. */
+  lang?: "id" | "en";
+  /** ISO 8601. Only read when `ogType` is `article`. */
+  publishedTime?: string;
+  /** ISO 8601, and only when the post was genuinely edited — see `[slug].astro`. */
+  modifiedTime?: string;
+  /** `article:tag` per entry. Technology labels, in the order the post lists them. */
+  tags?: string[];
+}
+
+const {
+  title,
+  description,
+  noindex = false,
+  image,
+  ogType = "profile",
+  lang = "en",
+  publishedTime,
+  modifiedTime,
+  tags = [],
+} = Astro.props;
+
+// `trailingSlash: 'never'`, so strip any and keep "/" for the root.
+const canonical = new URL(
+  Astro.url.pathname.replace(/\/+$/, "") || "/",
+  Astro.site,
+);
+
+const OG_DEFAULT = {
+  src: site.ogImage,
+  alt: `${site.name} — ${site.jobTitle}`,
+  width: 1200,
+  height: 630,
+};
+/** A cover without both dimensions is not usable as a card; see the prop doc. */
+const card = image?.width && image?.height ? image : OG_DEFAULT;
+const ogImage = new URL(card.src, Astro.site);
+
+/** Facebook/LinkedIn want the underscored form, not the bare subtag. */
+const OG_LOCALE = { id: "id_ID", en: "en_US" } as const;
+
+/**
+ * One Person entity, referenced by @id from every other block on the site.
+ * Fields the config does not know yet are omitted rather than guessed — a wrong
+ * `worksFor` is worse for entity resolution than a missing one.
+ */
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": `${site.url}/#person`,
+  name: site.name,
+  givenName: site.givenName,
+  familyName: site.familyName,
+  url: site.url,
+  image: new URL(site.avatar, Astro.site).href,
+  email: `mailto:${site.email}`,
+  jobTitle: site.jobTitle,
+  description: site.bio,
+  worksFor: {
+    "@type": "Organization",
+    name: site.employer,
+    url: site.employerUrl,
+  },
+  hasOccupation: {
+    "@type": "Occupation",
+    name: site.employmentTitle,
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: site.countryCode,
+    ...(site.city && { addressLocality: site.city }),
+  },
+  knowsAbout: site.knowsAbout,
+  knowsLanguage: [
+    { "@type": "Language", name: "Indonesian" },
+    { "@type": "Language", name: "English" },
+  ],
+  sameAs,
+  seeks: {
+    "@type": "Demand",
+    name: "Freelance and full-time fullstack web development engagements",
+  },
+};
+
+/**
+ * Google's site-name feature reads this, `og:site_name`, the homepage `<title>`
+ * and the homepage `<h1>`. When those disagree it gives up and prints the bare
+ * domain, so `name` is exactly `site.name` and nothing else — no role, no dash.
+ * Emitted on the homepage only, which is where Google looks for it.
+ */
+const website = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${site.url}/#website`,
+  url: site.url,
+  name: site.name,
+  alternateName: `${site.name} — ${site.jobTitle}`,
+  inLanguage: "en",
+  publisher: { "@id": `${site.url}/#person` },
+};
+
+const isHome = canonical.pathname === "/";
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/png" href="/favicon.png" />
+{
+  /* The only runtime origin the site depends on: screenshots, certificate scans
+    and post images. Fonts and CSS are same-origin. */
+}
+<link rel="preconnect" href="https://cdn.fkriachmd.qzz.io" crossorigin />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, follow" />}
+
+<link
+  rel="alternate"
+  type="application/rss+xml"
+  title={`${site.name} — articles`}
+  href={new URL("/rss.xml", Astro.site)}
+/>
+
+<meta name="author" content={site.name} />
+<meta name="theme-color" content="#b44805" />
+{
+  /* The design is a paper metaphor; declaring it stops the browser theming form
+    controls and scrollbars dark and clashing. */
+}
+<meta name="color-scheme" content="light" />
+
+{/* Self-hosted, same origin, preloaded. The two above-the-fold faces only. */}
+<Font cssVariable="--font-bricolage" preload />
+<Font cssVariable="--font-geist" preload />
+<Font cssVariable="--font-geist-mono" />
+
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content={OG_LOCALE[lang]} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content={String(card.width)} />
+<meta property="og:image:height" content={String(card.height)} />
+<meta property="og:image:alt" content={card.alt} />
+{
+  ogType === "profile" && (
+    <>
+      <meta property="profile:first_name" content={site.givenName} />
+      <meta property="profile:last_name" content={site.familyName} />
+    </>
+  )
+}
+{
+  /* Without these an article card is undated and unattributed, which for a
+    technical post is most of its credibility — and the dominant way this writing
+    travels is someone pasting the link into Slack or LinkedIn. */
+  ogType === "article" && (
+    <>
+      {publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )}
+      {modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime} />
+      )}
+      <meta property="article:author" content={site.name} />
+      {tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    </>
+  )
+}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={card.alt} />
+
+<meta name="generator" content={Astro.generator} />
+
+{/* set:html is required — as a child it would be HTML-escaped into invalid JSON. */}
+<script is:inline type="application/ld+json" set:html={JSON.stringify(person)} />
+{
+  isHome && (
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(website)}
+    />
+  )
+}
+
+<slot />

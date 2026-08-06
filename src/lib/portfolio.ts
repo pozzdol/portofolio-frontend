@@ -1,5 +1,4 @@
-import { DATABASE_URL } from "astro:env/server";
-import postgres from "postgres";
+import { sql } from "./db";
 import * as S from "./schema";
 
 /**
@@ -11,7 +10,6 @@ import * as S from "./schema";
  * "frontend hanya GET" is enforced by the database, not by convention.
  */
 
-const sql = postgres(DATABASE_URL, { max: 1, idle_timeout: 5 });
 
 export { period, year } from "./schema";
 export type { Tech, Image, Project, Experience, Certificate } from "./schema";

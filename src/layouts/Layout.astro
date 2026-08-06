@@ -1,10 +1,10 @@
 ---
-import { Font } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import "../styles/global.css";
+import BaseHead from "../components/BaseHead.astro";
 import Nav from "../components/Nav.astro";
 import Sidebar from "../components/Sidebar.astro";
-import { site, sameAs, employmentLine } from "../config/site";
+import { site, employmentLine } from "../config/site";
 import { getSections } from "../lib/sections";
 
 interface Props {
@@ -14,77 +14,15 @@ interface Props {
   description: string;
   /** Set while a page has no content yet — better absent than indexed thin. */
   noindex?: boolean;
-  /** Absolute or root-relative; resolved against `site` for the OG tags. */
-  image?: string;
 }
 
-const {
-  title,
-  description,
-  noindex = false,
-  image = site.ogImage,
-} = Astro.props;
-
-// `trailingSlash: 'never'`, so strip any and keep "/" for the root.
-const canonical = new URL(
-  Astro.url.pathname.replace(/\/+$/, "") || "/",
-  Astro.site,
-);
-const ogImage = new URL(image, Astro.site);
-const year = new Date().getUTCFullYear();
-
 /**
- * One Person entity, referenced by @id from every other block on the site.
- * Fields the config does not know yet are omitted rather than guessed — a wrong
- * `worksFor` is worse for entity resolution than a missing one.
+ * No `image` prop: every route on this layout is person-shaped and wants the
+ * default card. Only an article has a cover, and that is `ArticleLayout`.
  */
-const person = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "@id": `${site.url}/#person`,
-  name: site.name,
-  givenName: site.givenName,
-  familyName: site.familyName,
-  url: site.url,
-  image: new URL(site.avatar, Astro.site).href,
-  email: `mailto:${site.email}`,
-  jobTitle: site.jobTitle,
-  description: site.bio,
-  worksFor: {
-    "@type": "Organization",
-    name: site.employer,
-    url: site.employerUrl,
-  },
-  hasOccupation: {
-    "@type": "Occupation",
-    name: site.employmentTitle,
-  },
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: site.countryCode,
-    ...(site.city && { addressLocality: site.city }),
-  },
-  knowsAbout: site.knowsAbout,
-  knowsLanguage: [
-    { "@type": "Language", name: "Indonesian" },
-    { "@type": "Language", name: "English" },
-  ],
-  sameAs,
-  seeks: {
-    "@type": "Demand",
-    name: "Freelance and full-time fullstack web development engagements",
-  },
-};
+const { title, description, noindex = false } = Astro.props;
 
-const website = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "@id": `${site.url}/#website`,
-  url: site.url,
-  name: `${site.name} — ${site.jobTitle}`,
-  inLanguage: "en",
-  publisher: { "@id": `${site.url}/#person` },
-};
+const year = new Date().getUTCFullYear();
 
 const footerLinks = await getSections();
 
@@ -98,73 +36,7 @@ const elsewhere = [
 
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    {
-      /* The only runtime origin the site depends on: screenshots and certificate
-        scans. Fonts and CSS are same-origin now. */
-    }
-    <link rel="preconnect" href="https://cdn.fkriachmd.qzz.io" crossorigin />
-
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, follow" />}
-
-    <meta name="author" content={site.name} />
-    <meta name="theme-color" content="#b44805" />
-    {
-      /* The design is a paper metaphor; declaring it stops the browser theming
-        form controls and scrollbars dark and clashing. */
-    }
-    <meta name="color-scheme" content="light" />
-
-    {
-      /* Self-hosted, same origin, preloaded. The two above-the-fold faces only. */
-    }
-    <Font cssVariable="--font-bricolage" preload />
-    <Font cssVariable="--font-geist" preload />
-    <Font cssVariable="--font-geist-mono" />
-
-    <meta property="og:type" content="profile" />
-    <meta property="og:site_name" content={site.name} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`${site.name} — ${site.jobTitle}`} />
-    <meta property="profile:first_name" content={site.givenName} />
-    <meta property="profile:last_name" content={site.familyName} />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
-    <meta
-      name="twitter:image:alt"
-      content={`${site.name} — ${site.jobTitle}`}
-    />
-
-    <meta name="generator" content={Astro.generator} />
-
-    {
-      /* set:html is required — as a child it would be HTML-escaped into invalid JSON. */
-    }
-    <script
-      is:inline
-      type="application/ld+json"
-      set:html={JSON.stringify(person)}
-    />
-    <script
-      is:inline
-      type="application/ld+json"
-      set:html={JSON.stringify(website)}
-    />
-
+    <BaseHead title={title} description={description} noindex={noindex} />
     <slot name="head" />
   </head>
   <body>
@@ -175,7 +47,7 @@ const elsewhere = [
       <main
         id="main"
         tabindex="-1"
-        class="border-theme-200 bg-theme-100 col-span-8 col-start-5 lg:min-h-dvh lg:border-l"
+        class="paper-dots border-theme-200 bg-theme-100 col-span-8 col-start-5 lg:min-h-dvh lg:border-l"
       >
         <Nav />
         <slot />

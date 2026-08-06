@@ -1,0 +1,60 @@
+---
+/**
+ * Visible trail plus the matching `BreadcrumbList`.
+ *
+ * Both, together, deliberately: Google requires the markup to describe navigation
+ * a user can actually see, and the visible trail is what tells a reader who
+ * arrived from a search result whose site they are on. Emitting one without the
+ * other is either an invisible-content violation or a wasted rich result.
+ *
+ * The last crumb renders as text, not a link — a link to the page you are on is
+ * a dead control, and `aria-current="page"` is what conveys "here" instead.
+ */
+interface Props {
+  crumbs: { name: string; href: string }[];
+  /** Set when a crumb label is not in the page's declared language. */
+  lastLang?: "id" | "en";
+}
+
+const { crumbs, lastLang } = Astro.props;
+
+const ld = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: crumbs.map((crumb, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: crumb.name,
+    item: new URL(crumb.href, Astro.site).href,
+  })),
+};
+---
+
+<nav aria-label="Breadcrumb" class="spec text-slate-500" lang="en">
+  <ol class="flex flex-wrap items-center gap-2">
+    {
+      crumbs.map((crumb, i) => {
+        const isLast = i === crumbs.length - 1;
+        return (
+          <li class="flex items-center gap-2">
+            {i > 0 && <span aria-hidden="true">/</span>}
+            {isLast ? (
+              <span aria-current="page" lang={lastLang}>
+                {crumb.name}
+              </span>
+            ) : (
+              <a
+                href={crumb.href}
+                class="hover:text-theme-600 underline decoration-theme-300 underline-offset-4"
+              >
+                {crumb.name}
+              </a>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(ld)} />

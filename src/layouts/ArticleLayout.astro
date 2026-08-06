@@ -1,0 +1,165 @@
+---
+import { Icon } from "astro-icon/components";
+import "../styles/global.css";
+import BaseHead from "../components/BaseHead.astro";
+import { site } from "../config/site";
+import { getSections } from "../lib/sections";
+
+/**
+ * Hallmark · genre: editorial · macrostructure: Long Document
+ * theme: locked to the site's existing tokens (no rotation — the brief asked for
+ * the same style as every other page) · nav: N9 edge-aligned minimal, reduced to
+ * a return rail · footer: Ft2 inline single line · enrichment: none
+ *
+ * Why this is not `Layout.astro`:
+ *
+ * The rest of the site is a Feature Stack — a fixed identity sidebar beside a
+ * scrolling column of entries. That shape is right for scanning a list of work
+ * and wrong for reading one long piece. The sidebar carries an avatar, a bio and
+ * a contact line; next to a 1500-word article all three compete with the prose
+ * for the reader's attention while adding nothing to it, and they steal the
+ * horizontal room the measure needs.
+ *
+ * So the article page drops the sidebar, centres a single column at a ~70ch
+ * measure, and keeps only what a reader actually needs at hand: a way back, and
+ * the site nav in a rail slim enough to ignore. Same tokens, same type, same
+ * paper — a different shape for a different job.
+ */
+
+interface Props {
+  title: string;
+  description: string;
+  /** Post cover, whole — BaseHead needs its dimensions, not just its URL. */
+  image?: {
+    src: string;
+    alt: string;
+    width: number | null;
+    height: number | null;
+  };
+  /**
+   * Language of the post, not of the chrome. A post is the one page on this site
+   * whose language is data rather than a constant, so it is a required prop with
+   * no default: a missing one must be a type error, not a silent `en`.
+   */
+  lang: "id" | "en";
+  publishedTime: string;
+  /** Omitted when the post was never edited, so the unfurl is not faked as fresh. */
+  modifiedTime?: string;
+  tags?: string[];
+}
+
+const { title, description, image, lang, publishedTime, modifiedTime, tags } =
+  Astro.props;
+
+const year = new Date().getUTCFullYear();
+const sections = await getSections();
+---
+
+<html lang={lang}>
+  <head>
+    <BaseHead
+      title={title}
+      description={description}
+      image={image}
+      ogType="article"
+      lang={lang}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      tags={tags}
+    />
+    <slot name="head" />
+  </head>
+  <body class="bg-paper">
+    {
+      /* `<html lang>` follows the *post*, because the post is the page. The chrome
+        around it stays English, so each chrome region declares that — otherwise an
+        Indonesian post makes a screen reader read "Skip to the article" and every
+        nav label with Indonesian pronunciation. WCAG SC 3.1.2. */
+    }
+    <a href="#article" class="skip-link" lang="en">Skip to the article</a>
+
+    {
+      /* Return rail. Not the tab nav from the rest of the site: on a reading page
+        the primary action is "go back to the list", and a full tab strip invites
+        leaving mid-paragraph. The other destinations stay reachable, just quieter
+        and to the right. */
+    }
+    <div
+      class="border-theme-200 bg-theme-50/85 sticky top-0 z-10 border-b backdrop-blur-xl"
+      lang="en"
+    >
+      {
+        /* Same measure as the article body and the footer, so the back link sits
+          directly above the title. A wider rail leaves "← Articles" floating in
+          empty space to the left of the text it belongs to. */
+      }
+      <div class="mx-auto flex max-w-3xl items-center gap-4 px-6 py-3 md:px-8">
+        <a
+          href="/articles"
+          class="hover:text-theme-600 text-theme-500 inline-flex shrink-0 items-center gap-1.5 font-medium"
+        >
+          <Icon name="tabler:arrow-left" aria-hidden="true" focusable="false" />
+          Articles
+        </a>
+
+        <nav
+          class="ml-auto flex min-w-0 items-center gap-4"
+          aria-label="Site sections"
+        >
+          {
+            sections
+              .filter((s) => s.href !== "/articles")
+              .map((s) => (
+                <a
+                  href={s.href}
+                  class="hover:text-theme-600 shrink-0 text-sm text-slate-600"
+                >
+                  {s.label}
+                </a>
+              ))
+          }
+        </nav>
+      </div>
+    </div>
+
+    {/* tabindex="-1" so the skip link moves focus, not only the viewport. */}
+    <main id="article" tabindex="-1">
+      <slot />
+    </main>
+
+    {
+      /* Ft2 inline single line. The three-column footer belongs on the pages
+        that are trying to route you somewhere; at the end of an article the
+        reader has already decided to read, so one line is enough. */
+    }
+    <footer class="border-theme-200 mt-16 border-t" lang="en">
+      <div
+        class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-5 gap-y-2 px-6 py-8 md:px-8"
+      >
+        <p class="colophon text-slate-500">© {year} {site.name}</p>
+        <nav
+          class="flex flex-wrap items-center gap-x-5 gap-y-2"
+          aria-label="Elsewhere"
+        >
+          <a href="/" class="text-sm text-slate-600 hover:text-theme-600"
+            >Projects</a
+          >
+          <a
+            href={site.github}
+            rel="me noopener noreferrer"
+            target="_blank"
+            class="hover:text-theme-600 text-sm text-slate-600"
+          >
+            GitHub<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </nav>
+        <a
+          href={`mailto:${site.email}?subject=${encodeURIComponent("Hello from your site")}`}
+          class="hover:text-theme-600 ml-auto text-sm text-slate-600"
+        >
+          {site.email}
+        </a>
+      </div>
+    </footer>
+  </body>
+</html>

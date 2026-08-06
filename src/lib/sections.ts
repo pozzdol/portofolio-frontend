@@ -1,3 +1,4 @@
+import { getCollection } from "astro:content";
 import { getCertificates } from "./portfolio";
 
 /**
@@ -16,6 +17,7 @@ export async function getSections(): Promise<
   Array<{ href: string; label: string }>
 > {
   const hasCertificates = (await getCertificates()).length > 0;
+  const hasPosts = (await getCollection("posts")).length > 0;
 
   return [
     { href: "/", label: "Projects" },
@@ -23,5 +25,8 @@ export async function getSections(): Promise<
     ...(hasCertificates
       ? [{ href: "/certificates", label: "Certificates" }]
       : []),
+    // Same rule as certificates: the tab appears on the next build after the
+    // first post is published, and nothing in this repository has to change.
+    ...(hasPosts ? [{ href: "/articles", label: "Articles" }] : []),
   ];
 }
