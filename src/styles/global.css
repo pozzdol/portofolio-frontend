@@ -55,6 +55,28 @@
     transition: color var(--dur-micro) var(--ease-out);
   }
 
+  /* Thin, transparent-track scrollbar for panels that scroll inside the page
+     (the sidebar at lg). `scrollbar-*` is the standard and what Chrome 121+ and
+     Firefox use; the ::-webkit-* block is for Safari, which has no buttons to
+     hide but gets the same width and colour. */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-theme-300) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--color-theme-300);
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-button {
+    display: none;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-theme-500);
     outline-offset: 3px;
