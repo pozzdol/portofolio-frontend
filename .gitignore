@@ -33,3 +33,6 @@ docs/*
 .vscode
 .claude
 graphify-out
+# agent change-tracking notes (see AGENTS.md)
+.plan
+.docs
